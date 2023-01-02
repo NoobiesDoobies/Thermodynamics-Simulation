@@ -1,0 +1,23 @@
+{
+  "name": "temperatur-termodinamika",
+  "version": "1.0.0",
+  "description": "This is an n-particle simulation of energy, velocity, and pressure of a system",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NoobiesDoobies/Thermodynamics-Simulation.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NoobiesDoobies/Thermodynamics-Simulation/issues"
+  },
+  "homepage": "https://github.com/NoobiesDoobies/Thermodynamics-Simulation#readme",
+  "dependencies": {
+    "mathjs": "^11.5.0"
+  }
+}
