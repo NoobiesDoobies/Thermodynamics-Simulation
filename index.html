@@ -11,7 +11,15 @@
                     <input id="energy" type="range" min="1" max="100" value="50" class="slider" id="myRange"
                         oninput=updateSlider()
                     >
-                    <label class="value" id="energyValue"></label>
+                    <label class="sliderValue" id="energyValue"></label>
+                </div>
+
+                <div class="slideContainer">
+                    <p class="sliderName">FPS</p>
+                    <input id="fps" type="range" min="1" max="100" value="50" class="slider" id="myRange"
+                        oninput=updateSlider()
+                    >
+                    <label class="sliderValue" id="fpsValue"></label>
                 </div>
             </div>
             
@@ -23,6 +31,7 @@
         
     </body>
     <script src="https://unpkg.com/mathjs/lib/browser/math.js"></script>
+    <script src="elements.js"></script>
     <script src="variables.js"></script>
     <script src="ball.js"></script>
     <script src="box.js"></script>

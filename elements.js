@@ -1,0 +1,10 @@
+const canvas = document.getElementById("myCanvas")
+const startBtn = document.getElementById("start")
+const stopBtn = document.getElementById("stop")
+const ctx = canvas.getContext("2d")
+const energyElement = document.getElementById("energy")
+const energyValue = document.getElementById("energyValue")
+energyValue.innerHTML = energyElement.value
+const fpsElement = document.getElementById("fps")
+const fpsValue = document.getElementById("fpsValue")
+fpsValue.innerHTML = fpsElement.value;

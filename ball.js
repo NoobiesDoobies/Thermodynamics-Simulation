@@ -10,7 +10,7 @@ class Ball{
         this.r = radius;
         this.vx = vx;
         this.vy = vy;
-        this.collide = false;
+        this.willCollide = false;
         this.color = color;
 
         // top left bottom right
@@ -40,11 +40,29 @@ class Ball{
         ctx.fill();   
     }
 
-    checkCollision(traffic){   
-        const dx = this.x - traffic.x;
-        const dy = this.y - traffic.y;
+    // look one frame ahead
+    predictCollision(ball1, ball2){ 
+        let x1 = ball1.x
+        let y1 = ball1.y
+        let x2 = ball2.x
+        let y2 = ball2.y
+        let v1x = ball1.vx
+        let v1y = ball1.vy
+        let v2x = ball2.vx
+        let v2y = ball2.vy
+        let r1 = ball1.r
+        let r2 = ball2.r
+        
+        x1 += (v1x * deltaT)
+        y1 -= (v1y * deltaT)
+        x2 += (v2x * deltaT)
+        y2 -= (v2y * deltaT)  
+        const dx = x1 - x2;
+        const dy = y1 - y2;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        const sumRadius = this.r + traffic.r;
+        const sumRadius = r1 + r2;
+
+        // console.log("distance: " + distance + " sumRadius: " + sumRadius)
         
         return distance < sumRadius;       
     }
@@ -52,23 +70,13 @@ class Ball{
     update(traffic, index){
         for(let i = 0; i<traffic.length; i++){
             if(i != index){
-                this.collide = this.checkCollision(traffic[i]);
-                if(this.collide){
-                    
-                    console.log("collision!!")
-                    // const v1 = []
-                    // const v2 = []
-                    // v1[0] = this.vx
-                    // v1[1] = this.vy
-                    // v2[0] = traffic[i].vx
-                    // v2[1] = traffic[i].vy
+                // console.log(".")
+                this.willCollide = this.predictCollision(this, traffic[i])
+                if(this.willCollide){
+                    // console.log("collision!!")
 
                     const v1 = math.matrix([[this.vx], [this.vy]])
                     const v2 = math.matrix([[traffic[i].vx], [traffic[i].vy]])
-
-
-                    // const r1 = this.r
-                    // const r2 = traffic[i].r
 
                     const r1 = math.matrix([[this.x], [this.y]])
                     const r2 = math.matrix([[traffic[i].x],[traffic[i].y]])
@@ -79,6 +87,11 @@ class Ball{
                     const m1 = math.pow(R1,3)
                     const m2 = math.pow(R2,3)
 
+                    const centerToCenterVector = math.subtract(r1,r2)
+                    const centerToCenterScalar = math.sqrt(math.dot(centerToCenterVector, centerToCenterVector))
+                    const centerToCenterUnitVector = math.divide(centerToCenterVector, centerToCenterScalar)
+                    
+
                     // v1New[0] = (Math.pow(r1,3) - Math.pow(r2,3)) / (Math.pow(r1,3) + Math.pow(r2,3)) * v1[0] + 2 * Math.pow(r2,3) / (Math.pow(r1,3) + Math.pow(r2,3)) * v2[0]
                     // v1New[1] = (Math.pow(r1,3) - Math.pow(r2,3)) / (Math.pow(r1,3) + Math.pow(r2,3)) * v1[1] + 2 * Math.pow(r2,3) / (Math.pow(r1,3) + Math.pow(r2,3)) * v2[1]
                     
@@ -88,17 +101,16 @@ class Ball{
                     // const v1New = math.subtract(v1, math.multiply(( math.dot(math.subtract(v1,v2),math.subtract(r1,r2)) ) / math.dot(math.subtract(r1,r2),math.subtract(r1,r2)),  math.subtract(r1,r2)))
                     // const v2New = math.subtract(v2, math.multiply(( math.dot(math.subtract(v2,v1),math.subtract(r2,r1)) ) / math.dot(math.subtract(r1,r2),math.subtract(r1,r2)),  math.subtract(r2,r1)))
                     
-                    const centerToCenterVector = math.subtract(r1,r2)
-                    const centerToCenterScalar = math.sqrt(math.dot(centerToCenterVector, centerToCenterVector))
-                    const centerToCenterUnitVector = math.divide(centerToCenterVector, centerToCenterScalar)
+
+                    //===========================//
 
                     const v1ProjVector = math.multiply(math.dot(v1,centerToCenterVector) / math.pow(centerToCenterScalar,2), centerToCenterVector)
                     const v1OrthoVector = math.subtract(v1,v1ProjVector)
                     const v2ProjVector = math.multiply(math.dot(v2,centerToCenterVector) / math.pow(centerToCenterScalar,2), centerToCenterVector)
                     const v2OrthoVector = math.subtract(v2,v2ProjVector)
                     const v1ProjScalar = math.dot(v1, centerToCenterVector)/centerToCenterScalar
-                    const v2ProjScalar = math.dot(v2, centerToCenterVector)/centerToCenterScalar
                     const alpha = Math.acos(v1ProjScalar/math.sqrt(math.dot(v1,v1))) * 180 / math.pi
+                    const v2ProjScalar = math.dot(v2, centerToCenterVector)/centerToCenterScalar
                     const v1ProjScalarNew = (m1-m2)/(m1+m2) * v1ProjScalar + 2*m2/(m1+m2) * v2ProjScalar
                     const v2ProjScalarNew = 2*m1/(m1+m2) * v1ProjScalar - (m1-m2)/(m1+m2) * v2ProjScalar
 
@@ -108,50 +120,27 @@ class Ball{
                     const v1New = math.add(v1OrthoVector, v1ProjVectorNew)
                     const v2New = math.add(v2OrthoVector, v2ProjVectorNew)
 
+                    //===============================//
+                    // const v1New = math.subtract(v1, math.multiply( math.multiply(2*m2/(m1+m2), math.divide(math.dot(math.subtract(v1,v2), centerToCenterVector), math.pow(centerToCenterScalar, 2))), centerToCenterVector))
+                    // const v2New = math.subtract(v2, math.multiply( math.multiply(2*m1/(m1+m2), math.divide(math.dot(math.subtract(v2,v1), centerToCenterVector), math.pow(centerToCenterScalar, 2))), centerToCenterVector))
 
 
-                    if(index == 0){
-                        console.log("x1: " + this.x + " y1: " + this.y + " vx1: " + this.vx + " vy1: " + this.vy + " r1: " + this.r)
-                        console.log("x2: " + traffic[i].x + " y2: " + traffic[i].y + " vx2: " + traffic[i].vx + " vy2: " + traffic[i].vy + " r2: " + traffic[i].r)
-                        console.log("alpha: " + alpha + " m1: " + m1 + " m2: " + m2)
-
-                        console.log("v1projvectorx: " + v1ProjVector.get([0,0]) + " v1projvectory: " + v1ProjVector.get([1,0]))
-                        console.log("v2projvectorx: " + v2ProjVector.get([0,0]) + " v2projvectory: " + v2ProjVector.get([1,0]))
-
-                        console.log("v1orthovectorx: " + v1OrthoVector.get([0,0]))
-                        console.log("v2orthovectorx: " + v2OrthoVector.get([0,0]))
-
-                        console.log("centertocenterscalar: " + centerToCenterScalar)
-                        console.log("centertocentervectorx: " + centerToCenterVector.get([0,0]) + " centertocentervectory: " + centerToCenterVector.get([1,0]))
-                        
-                    }   
-                    console.log("v1projscalarnew: " + v1ProjScalarNew + " v2projscalarnew: " + v2ProjScalarNew)
                     
                     this.vx = v1New.get([0,0])
                     this.vy = v1New.get([1,0])
+
+
                     traffic[i].setVelocity(v2New.get([0,0]), v2New.get([1,0]))
 
-                    // if(index == 0){
-                    //     console.log("x1: " + this.x + " y1: " + this.y + " vx1: " + this.vx + " vy1: " + this.vy + " r1: " + this.r)
-                    //     console.log("x2: " + traffic[i].x + " y2: " + traffic[i].y + " vx2: " + traffic[i].vx + " vy2: " + traffic[i].vy + " r2: " + traffic[i].r)
-                    //     console.log("alpha: " + alpha)
-                    // }
+                    
+
                     const dx = this.x - traffic[i].x;
                     const dy = -(this.y - traffic[i].y);
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     const sumRadius = this.r + traffic[i].r;
-
-                    
-                    this.x += (this.r) / (this.r + traffic[i].r) * ((sumRadius * dx/distance) - dx);
-                    this.y -= (this.r) / (this.r + traffic[i].r) * ((sumRadius * dy/distance) - dy);
-
-                    const x2 = traffic[i].x + (traffic[i].r) / (this.r + traffic[i].r) * ((sumRadius * dx/distance) - dx);
-                    const y2 = traffic[i].y - (traffic[i].r) / (this.r + traffic[i].r) * ((sumRadius * dy/distance) - dy);
-
-                    traffic[i].setPosition(x2, y2);
                 }
                 
-                this.collide = false;
+                this.willCollide = false;
             }
 
         }
@@ -174,8 +163,8 @@ class Ball{
 
 
         // move
-        this.x += this.vx;
-        this.y -= this.vy;
+        this.x += (this.vx * deltaT);
+        this.y -= (this.vy * deltaT);
   
     }
 }
